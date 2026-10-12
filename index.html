@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101820">
+    <meta name="description" content="A clean, interactive workspace for drawing and organizing electrical circuits.">
+    <title>Tirtho — Circuit Studio</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="src/circuit-model.js" defer></script>
+    <script src="src/circuit-analysis.js" defer></script>
+    <script src="src/circuit-oscilloscope.js" defer></script>
+    <script src="src/app.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Tirtho home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="brand-name">Tirtho</span>
+          <span class="brand-divider"></span>
+          <span class="brand-product">Circuit studio</span>
+        </a>
+        <nav class="primary-nav" aria-label="Main navigation">
+          <button class="nav-tab active" type="button" data-page="home" aria-current="page">Home</button>
+          <button class="nav-tab" type="button" data-page="options">Options</button>
+          <button class="nav-tab" type="button" data-page="settings">Settings</button>
+        </nav>
+        <div class="topbar-actions">
+          <span class="component-count"><span class="status-dot"></span><span id="component-count">0 COMPONENTS</span></span>
+          <span class="saved-status" id="save-status">All changes saved</span>
+          <button class="icon-button" id="help-button" type="button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.6 9a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2-2.4 3.6M12 16.7h.01"></path></svg>
+          </button>
+          <button class="account-button" id="account-button" type="button">Sign in</button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <aside class="tool-rail" aria-label="Component toolbar">
+          <div class="rail-heading">TOOLS</div>
+          <div class="tool-list" role="toolbar" aria-label="Circuit tools">
+            <button class="tool-button active" data-tool="select" type="button" title="Select and move (V)" aria-pressed="true">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 3 14 10-6 1.3-3 5.7L5 3Z"></path></svg></span><span>Select</span><kbd>V</kbd>
+            </button>
+            <button class="tool-button" data-tool="battery" type="button" title="Place battery or drag it onto the canvas" aria-pressed="false">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h5m6 0h5M9 8v8m6-5v2"></path></svg></span><span>Battery</span><span class="tool-count">01</span>
+            </button>
+            <button class="tool-button" data-tool="currentSource" type="button" title="Place current source or drag it onto the canvas" aria-pressed="false">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M6 12h11m-4-4 4 4-4 4"></path></svg></span><span>Current Source</span><span class="tool-count">I</span>
+            </button>
+            <button class="tool-button" data-tool="resistor" type="button" title="Place resistor or drag it onto the canvas" aria-pressed="false">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h3l2-4 4 8 4-8 2 4h3"></path></svg></span><span>Resistor</span><span class="tool-count">02</span>
+            </button>
+            <button class="tool-button" data-tool="capacitor" type="button" title="Place capacitor or drag it onto the canvas" aria-pressed="false">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h7m4 0h7m-7-6v12m-4-12v12"></path></svg></span><span>Capacitor</span><span class="tool-count">C</span>
+            </button>
+            <button class="tool-button" data-tool="led" type="button" title="Place LED or drag it onto the canvas" aria-pressed="false">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7v10l9-5-9-5Zm9.5-2 2-2m-1 7h3m-4 3 2 2"></path></svg></span><span>LED</span><span class="tool-count">03</span>
+            </button>
+            <button class="tool-button" data-tool="switch" type="button" title="Place switch or drag it onto the canvas" aria-pressed="false">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14h5m8 0h5m-13 0 7-5"></path><circle cx="8" cy="14" r="1.5"></circle><circle cx="16" cy="14" r="1.5"></circle></svg></span><span>Switch</span><span class="tool-count">04</span>
+            </button>
+            <button class="tool-button" data-tool="wire" type="button" title="Draw orthogonal wires, tap existing wires, or leave an open endpoint" aria-pressed="false">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h7V7h9M8 18v-4m12-7v4"></path><circle cx="11" cy="18" r="1"></circle></svg></span><span>Wire</span><span class="tool-count">05</span>
+            </button>
+            <button class="tool-button" data-tool="probe" type="button" title="Probe a component current or node voltage" aria-pressed="false">
+              <span class="tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 5 5M10.5 7v7m-3.5-3.5h7"></path></svg></span><span>Probe</span><kbd>P</kbd>
+            </button>
+          </div>
+          <div class="rail-divider"></div>
+          <div class="rail-heading layout-heading">LAYOUT</div>
+          <button class="tool-button layout-tool" id="breadboard-toggle" type="button" aria-pressed="false" title="Toggle breadboard layout">
+            <span class="tool-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M7 8v.01M11 8v.01M15 8v.01M19 8v.01M7 12v.01M11 12v.01M15 12v.01M19 12v.01M7 16v.01M11 16v.01M15 16v.01M19 16v.01"></path></svg></span><span>Breadboard</span><span class="tool-count">ON/OFF</span>
+          </button>
+          <div class="rail-divider"></div>
+          <div class="rail-tip"><span class="tip-spark">✳</span><span>Click to place,<br>or drag to canvas</span></div>
+          <div class="rail-footer">TIRTHO · 01</div>
+        </aside>
+
+        <section class="editor" aria-label="Circuit editor">
+          <div class="editor-toolbar">
+            <div class="breadcrumb"><span id="circuit-name">Untitled circuit</span><span class="breadcrumb-slash">/</span><span class="breadcrumb-current">Schematic</span><span class="unsaved-indicator" id="unsaved-indicator" aria-hidden="true"></span></div>
+            <div class="editor-actions">
+              <button class="action-button" id="undo-button" type="button" title="Undo (Ctrl+Z)" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5 3.5 8.5 7 12M4 8.5h7a5 5 0 0 1 0 10h-1"></path></svg><span>Undo</span></button>
+              <button class="action-button" id="redo-button" type="button" title="Redo (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m13 5 3.5 3.5L13 12m3-.5H9a5 5 0 0 0 0 10h1"></path></svg><span>Redo</span></button>
+              <button class="action-button delete-action" data-tool="delete" type="button" title="Delete a component or wire" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 5.5h13m-10-2h7l1 2h-9l1-2Zm-.5 2 1 10h8l1-10M8 8.5v6m4-6v6"></path></svg><span>Delete</span></button>
+              <button class="action-button view-3d-button" id="view-3d-button" type="button" title="Open 3D circuit view"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m10 2 7 4v8l-7 4-7-4V6l7-4Z"></path><path d="m3 6 7 4 7-4m-7 4v8"></path></svg><span>3D View</span></button>
+              <button class="action-button current-flow-button" id="current-flow-3d-button" type="button" title="Show current direction in 3D"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 5h12m-3-3 3 3-3 3M18 15H6m3-3-3 3 3 3"></path></svg><span>Current 3D</span></button>
+              <span class="action-divider"></span>
+              <button class="action-button clear-button" id="clear-button" type="button" title="Clear all components"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 5.5h13m-10-2h7l1 2h-9l1-2Zm-.5 2 1 10h8l1-10M8 8.5v6m4-6v6"></path></svg><span>Clear</span></button>
+              <span class="action-divider"></span>
+              <button class="action-button save-button" id="save-button" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9m0 0 3-3m-3 3L7 9m-3 7h12"></path></svg><span>Save</span></button>
+              <button class="action-button load-button" id="load-button" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 13V4m0 0L7 7m3-3 3 3M4 13v4h12v-4"></path></svg><span>Load</span></button>
+              <input id="file-input" type="file" accept=".json,application/json" hidden>
+            </div>
+          </div>
+
+          <div class="canvas-wrap" id="canvas-wrap">
+            <div class="canvas-label"><span class="canvas-label-dot"></span> SCHEMATIC <span class="canvas-label-divider"></span> <span id="canvas-tool-label">SELECT TOOL</span></div>
+            <svg class="circuit-canvas" id="circuit-canvas" viewBox="0 0 1200 800" role="application" aria-label="Circuit drawing canvas">
+              <defs>
+                <pattern id="minor-grid" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#33414a" fill-opacity=".48"></circle></pattern>
+                <pattern id="major-grid" width="120" height="120" patternUnits="userSpaceOnUse"><rect width="120" height="120" fill="url(#minor-grid)"></rect><circle cx="1" cy="1" r="1.45" fill="#42515a" fill-opacity=".56"></circle></pattern>
+              </defs>
+              <rect class="canvas-background" width="1200" height="800"></rect>
+              <rect id="schematic-grid" width="1200" height="800" fill="url(#major-grid)" pointer-events="none"></rect>
+              <g id="breadboard-layer" class="breadboard-layer" aria-hidden="true" pointer-events="none"></g>
+              <g id="wire-layer"></g>
+              <g id="component-layer"></g>
+              <g id="preview-layer"></g>
+            </svg>
+            <div class="canvas-coordinates" id="canvas-coordinates">X 000 · Y 000</div>
+            <div class="canvas-zoom" aria-label="Canvas zoom controls"><button id="zoom-out-button" type="button" aria-label="Zoom out" title="Zoom out">−</button><span id="zoom-level">100%</span><button id="zoom-in-button" type="button" aria-label="Zoom in" title="Zoom in">+</button></div>
+          </div>
+
+          <section class="oscilloscope-panel" id="oscilloscope-panel" aria-labelledby="oscilloscope-title" hidden>
+            <div class="oscilloscope-header">
+              <div class="oscilloscope-heading"><span class="scope-indicator"></span><h2 id="oscilloscope-title">Oscilloscope</h2><span class="scope-live-label" id="oscilloscope-live-label">LIVE · 10 Hz</span></div>
+              <div class="oscilloscope-controls">
+                <label class="visually-hidden" for="probe-measurement">Probe measurement</label>
+                <select id="probe-measurement" aria-label="Probe measurement">
+                  <option value="current">Component current</option>
+                  <option value="voltage">Component voltage</option>
+                </select>
+                <button type="button" class="scope-clear-button" id="clear-probes-button">Clear probes</button>
+              </div>
+            </div>
+            <div class="oscilloscope-plot">
+              <canvas id="oscilloscope-canvas" role="img" aria-label="Live circuit measurement waveform"></canvas>
+              <p class="oscilloscope-empty" id="oscilloscope-empty">Choose Probe, then click a component or terminal to add a trace.</p>
+            </div>
+            <div class="oscilloscope-legend" id="oscilloscope-legend" aria-label="Active oscilloscope probes"></div>
+          </section>
+
+          <footer class="editor-footer">
+            <div class="footer-left"><span class="keyboard-hint"><kbd>SPACE</kbd> + drag to pan</span><span class="footer-divider"></span><span class="footer-message" id="footer-message">Ready to build your circuit</span></div>
+            <div class="footer-right"><span class="connection-indicator"><span></span> LOCAL</span><span class="footer-divider"></span><span>1200 × 800</span></div>
+          </footer>
+        </section>
+
+        <aside class="properties-panel" aria-label="Circuit Properties">
+          <div class="properties-heading">
+            <div><span class="panel-eyebrow">INSPECTOR</span><h1>Circuit Properties</h1></div>
+            <button class="panel-menu-button" id="rotate-button" type="button" title="Rotate selected component (R)" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 8a6 6 0 0 0-10-3L4 7m0-4v4h4m-4 5a6 6 0 0 0 10 3l2-2m0 4v-4h-4"></path></svg></button>
+          </div>
+          <div class="inspector-content" id="inspector-content">
+            <div class="empty-inspector">
+              <div class="empty-illustration"><span class="empty-line"></span><span class="empty-terminal"></span><span class="empty-core"></span><span class="empty-terminal second"></span></div>
+              <h2>Nothing selected</h2>
+              <p>Select a component on the canvas to view its properties and specifications.</p>
+              <div class="empty-shortcut"><kbd>CLICK</kbd><span>a component to inspect it</span></div>
+            </div>
+          </div>
+          <div class="panel-bottom">
+            <div class="panel-note-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14Zm0-10v3m0 3h.01"></path></svg></div>
+            <p>DC analysis supports ideal batteries, current sources, resistors, and switches. Capacitors are open circuits at steady state; LEDs are not yet supported by the solver.</p>
+          </div>
+        </aside>
+      </section>
+      <section class="content-page" id="options-page" aria-labelledby="options-title" hidden>
+        <header class="page-heading">
+          <div><span class="panel-eyebrow">YOUR WORKSPACE</span><h1 id="options-title">Saved Circuits</h1><p>Keep designs in this browser and reopen them any time.</p></div>
+        </header>
+        <form class="save-circuit-form" id="save-circuit-form">
+          <label for="saved-circuit-name">Circuit name</label>
+          <div class="save-circuit-control"><input id="saved-circuit-name" name="name" maxlength="64" required value="Untitled circuit"><button class="primary-button" type="submit">Save current circuit</button></div>
+        </form>
+        <div class="saved-circuit-list" id="saved-circuit-list" aria-live="polite"></div>
+      </section>
+      <section class="content-page" id="settings-page" aria-labelledby="settings-title" hidden>
+        <header class="page-heading">
+          <div><span class="panel-eyebrow">PREFERENCES</span><h1 id="settings-title">Settings</h1><p>Adjust how the schematic workspace behaves on this device.</p></div>
+        </header>
+        <div class="settings-card">
+          <label class="setting-row" for="snap-to-grid">
+            <span><strong>Snap components to grid</strong><small>Align component placement and movement to 24 px grid increments.</small></span>
+            <input id="snap-to-grid" type="checkbox">
+          </label>
+          <label class="setting-row" for="show-schematic-grid">
+            <span><strong>Show schematic grid</strong><small>Display the drafting grid beneath the circuit.</small></span>
+            <input id="show-schematic-grid" type="checkbox" checked>
+          </label>
+          <div class="settings-note">Preferences are stored locally in this browser.</div>
+        </div>
+      </section>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </main>
+    <section class="account-overlay" id="account-overlay" role="dialog" aria-modal="true" aria-labelledby="account-title" hidden>
+      <div class="account-dialog">
+        <button class="account-close" id="close-account-button" type="button" aria-label="Close account dialog">×</button>
+        <div class="account-brand"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span class="brand-name">Tirtho</span></div>
+        <div class="account-tabs" role="tablist" aria-label="Account access">
+          <button class="account-tab active" type="button" role="tab" id="sign-in-tab" aria-selected="true">Sign in</button>
+          <button class="account-tab" type="button" role="tab" id="sign-up-tab" aria-selected="false">Sign up</button>
+        </div>
+        <h2 id="account-title">Welcome back</h2>
+        <p class="account-description">Account access is ready for your authentication provider.</p>
+        <form class="account-form" id="sign-in-form">
+          <label for="sign-in-email">Email</label><input id="sign-in-email" type="email" autocomplete="email" required placeholder="you@example.com">
+          <label for="sign-in-password">Password</label><input id="sign-in-password" type="password" autocomplete="current-password" required minlength="8" placeholder="At least 8 characters">
+          <button class="primary-button" type="submit">Sign in</button>
+        </form>
+        <form class="account-form" id="sign-up-form" hidden>
+          <label for="sign-up-name">Name</label><input id="sign-up-name" type="text" autocomplete="name" required maxlength="80" placeholder="Your name">
+          <label for="sign-up-email">Email</label><input id="sign-up-email" type="email" autocomplete="email" required placeholder="you@example.com">
+          <label for="sign-up-password">Password</label><input id="sign-up-password" type="password" autocomplete="new-password" required minlength="8" placeholder="At least 8 characters">
+          <button class="primary-button" type="submit">Create account</button>
+        </form>
+        <p class="auth-notice">This interface is a front-end placeholder; no credentials are sent or stored.</p>
+      </div>
+    </section>
+    <section class="circuit-3d-overlay" id="circuit-3d-overlay" role="dialog" aria-modal="true" aria-labelledby="circuit-3d-title" hidden>
+      <div class="circuit-3d-dialog">
+        <header class="circuit-3d-header">
+          <div><span class="panel-eyebrow">SPATIAL VIEW</span><h2 id="circuit-3d-title">Circuit 3D</h2></div>
+          <button class="icon-button" id="close-3d-button" type="button" aria-label="Close 3D view" title="Close 3D view">×</button>
+        </header>
+        <div class="circuit-3d-stage" id="circuit-3d-container" aria-label="Interactive three-dimensional circuit view">
+          <p class="circuit-3d-message" id="circuit-3d-message" role="status">Preparing the 3D view…</p>
+        </div>
+        <footer class="circuit-3d-footer"><span>Drag to orbit · Scroll to zoom</span><span id="circuit-3d-status">Waiting for circuit data</span></footer>
+      </div>
+    </section>
+  </body>
+</html>
